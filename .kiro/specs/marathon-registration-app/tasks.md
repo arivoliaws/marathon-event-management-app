@@ -13,8 +13,8 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
   - Create config.py for application configuration (database URI, secret key)
   - _Requirements: 4.1, 4.2, 4.3, 6.1, 6.2, 6.3_
 
-- [ ] 2. Implement database models
-  - [ ] 2.1 Create SQLAlchemy models for MarathonEvent, Participant, and Invitation
+- [x] 2. Implement database models
+  - [x] 2.1 Create SQLAlchemy models for MarathonEvent, Participant, and Invitation
     - Define MarathonEvent model with id, name, date, location, distance, timestamps
     - Define Participant model with id, name, email, phone, age, timestamps
     - Define Invitation model with id, participant_id, event_id, sent_at, and relationships
@@ -25,13 +25,13 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - **Property 1: Create operation persistence**
     - **Validates: Requirements 1.1, 2.1, 3.1, 5.1**
 
-  - [ ] 2.3 Create database initialization script
+  - [x] 2.3 Create database initialization script
     - Write function to create all tables
     - Add sample data seeding for development
     - _Requirements: 5.1_
 
-- [ ] 3. Implement validation functions
-  - [ ] 3.1 Create validation module with event, participant, and invitation validators
+- [x] 3. Implement validation functions
+  - [x] 3.1 Create validation module with event, participant, and invitation validators
     - Implement validate_event() checking name, date, location, distance
     - Implement validate_participant() checking name, email format, age
     - Implement validate_invitation() checking participant and event existence
@@ -50,15 +50,15 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - **Property 9: Invitation referential integrity**
     - **Validates: Requirements 7.3**
 
-  - [ ]* 3.5 Write unit tests for validation edge cases
+  - [x] 3.5 Write unit tests for validation edge cases
     - Test empty strings, whitespace-only strings
     - Test boundary values (age=0, age=1, distance=0.0, distance=0.1)
     - Test various invalid email formats
     - Test past dates, current date, future dates
     - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 4. Implement REST API for marathon events
-  - [ ] 4.1 Create API blueprint and event CRUD endpoints
+- [x] 4. Implement REST API for marathon events
+  - [x] 4.1 Create API blueprint and event CRUD endpoints
     - Implement POST /api/events (create event with validation)
     - Implement GET /api/events (list all events)
     - Implement GET /api/events/<id> (get single event)
@@ -81,14 +81,14 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - **Property 12: Non-existent resource status codes** (events)
     - **Validates: Requirements 4.4, 4.5, 4.6**
 
-  - [ ]* 4.4 Write unit tests for event API edge cases
+  - [x] 4.4 Write unit tests for event API edge cases
     - Test creating event with missing fields
     - Test updating non-existent event
     - Test deleting non-existent event
     - _Requirements: 1.5, 4.5, 4.6_
 
-- [ ] 5. Implement REST API for participants
-  - [ ] 5.1 Create participant CRUD endpoints
+- [x] 5. Implement REST API for participants
+  - [x] 5.1 Create participant CRUD endpoints
     - Implement POST /api/participants (create participant with validation)
     - Implement GET /api/participants (list all participants)
     - Implement GET /api/participants/<id> (get single participant)
@@ -117,8 +117,8 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - Test negative age values
     - _Requirements: 2.5, 4.5_
 
-- [ ] 6. Implement REST API for invitations
-  - [ ] 6.1 Create invitation CRUD endpoints
+- [x] 6. Implement REST API for invitations
+  - [x] 6.1 Create invitation CRUD endpoints
     - Implement POST /api/invitations (create invitation with validation)
     - Implement GET /api/invitations (list all invitations with nested participant/event data)
     - Implement GET /api/invitations?event_id=<id> (filter by event)
@@ -145,12 +145,12 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - Test cascade deletion (delete event, verify invitations removed)
     - _Requirements: 7.3_
 
-- [ ] 7. Checkpoint - Ensure all API tests pass
+- [x] 7. Checkpoint - Ensure all API tests pass
   - Run all tests to verify API functionality
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 8. Implement web interface for events
-  - [ ] 8.1 Create event management templates and routes
+- [x] 8. Implement web interface for events
+  - [x] 8.1 Create event management templates and routes
     - Create templates/events.html with event list, create form, edit forms, delete buttons
     - Implement GET /events route to display all events
     - Implement POST /events/create route to handle event creation
@@ -160,7 +160,7 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - Display validation errors in the UI
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 5.2, 6.1, 6.4, 6.5_
 
-  - [ ]* 8.2 Write unit tests for event web routes
+  - [x] 8.2 Write unit tests for event web routes
     - Test GET /events returns correct template with data
     - Test POST /events/create with valid and invalid data
     - Test form validation error display
@@ -169,11 +169,11 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
 - [ ] 9. Implement web interface for participants
   - [ ] 9.1 Create participant management templates and routes
     - Create templates/participants.html with participant list, create form, edit forms, delete buttons
-    - Implement GET /participants route to display all participants
-    - Implement POST /participants/create route to handle participant creation
-    - Implement POST /participants/<id>/update route to handle participant updates
-    - Implement POST /participants/<id>/delete route to handle participant deletion
-    - Add JavaScript for AJAX updates
+    - Implement GET /participants route to display all participants (already exists)
+    - Implement POST /participants/create route to handle participant creation (already exists)
+    - Implement POST /participants/<id>/update route to handle participant updates (already exists)
+    - Implement POST /participants/<id>/delete route to handle participant deletion (already exists)
+    - Add JavaScript for AJAX updates (similar to events page)
     - Display validation errors in the UI
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 5.2, 6.2, 6.4, 6.5_
 
@@ -187,11 +187,11 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
   - [ ] 10.1 Create invitation management templates and routes
     - Create templates/invitations.html with invitation list, create form, delete buttons
     - Display participant and event details for each invitation
-    - Implement GET /invitations route to display all invitations
-    - Implement POST /invitations/create route to handle invitation creation
-    - Implement POST /invitations/<id>/delete route to handle invitation deletion
+    - Implement GET /invitations route to display all invitations (already exists)
+    - Implement POST /invitations/create route to handle invitation creation (already exists)
+    - Implement POST /invitations/<id>/delete route to handle invitation deletion (already exists)
     - Add dropdowns populated with existing participants and events
-    - Add JavaScript for AJAX updates
+    - Add JavaScript for AJAX updates (similar to events page)
     - Display validation errors in the UI
     - _Requirements: 3.1, 3.2, 3.5, 5.2, 6.3, 6.4, 6.5_
 
@@ -200,8 +200,8 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - Test POST /invitations/create with valid and invalid references
     - _Requirements: 6.3, 6.5_
 
-- [ ] 11. Create base template and styling
-  - [ ] 11.1 Create base layout and navigation
+- [x] 11. Create base template and styling
+  - [x] 11.1 Create base layout and navigation
     - Create templates/base.html with navigation menu
     - Add links to Events, Participants, and Invitations pages
     - Create static/style.css with basic styling
@@ -214,8 +214,8 @@ This implementation plan breaks down the Flask-based Marathon Registration Web A
     - Simulate database failures and verify rollback behavior
     - **Validates: Requirements 5.4**
 
-- [ ] 13. Create application entry point and configuration
-  - [ ] 13.1 Create main application runner
+- [x] 13. Create application entry point and configuration
+  - [x] 13.1 Create main application runner
     - Create run.py or app.py as entry point
     - Configure Flask app with database URI and secret key
     - Initialize database on first run

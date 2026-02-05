@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Marathon Registration App{% endblock %}
+
+{% block content %}
+<!-- Create Event Form -->
+<div class="card">
+    <div class="card-header">Create New Event</div>
+    <form id="create-event-form">
+        <div class="form-group">
+            <label for="create-name" class="form-label">Event Name *</label>
+            <input type="text" id="create-name" name="name" class="form-control" required>
+            <div class="form-error" id="create-name-error"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="create-date" class="form-label">Date *</label>
+            <input type="date" id="create-date" name="date" class="form-control" required>
+            <div class="form-error" id="create-date-error"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="create-location" class="form-label">Location *</label>
+            <input type="text" id="create-location" name="location" class="form-control" required>
+            <div class="form-error" id="create-location-error"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="create-distance" class="form-label">Distance (km) *</label>
+            <input type="number" id="create-distance" name="distance" class="form-control" step="0.1" min="0.1" required>
+            <div class="form-error" id="create-distance-error"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Create Event</button>
+    </form>
+</div>
+
+<!-- Events List -->
+<div class="card">
+    <div class="card-header">All Events</div>
+    
+    {% if events %}
+    <div class="table-responsive">
+        <table class="table" id="events-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Distance (km)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="events-tbody">
+                {% for event in events %}
+                <tr id="event-row-{{ event.id }}" data-event-id="{{ event.id }}">
+                    <td class="event-name">{{ event.name }}</td>
+                    <td class="event-date">{{ event.date.strftime('%Y-%m-%d') }}</td>
+                    <td class="event-location">{{ event.location }}</td>
+                    <td class="event-distance">{{ event.distance }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary btn-small edit-btn" data-event-id="{{ event.id }}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-btn" data-event-id="{{ event.id }}">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📅</div>
+        <div class="empty-state-text">No events yet. Create your first event above!</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Edit Event Modal (Hidden by default) -->
+<div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="card">
+            <div class="card-header">
+                Edit Event
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <form id="edit-event-form">
+                <input type="hidden" id="edit-event-id" name="event_id">
+                
+                <div class="form-group">
+                    <label for="edit-name" class="form-label">Event Name *</label>
+                    <input type="text" id="edit-name" name="name" class="form-control" required>
+                    <div class="form-error" id="edit-name-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-date" class="form-label">Date *</label>
+                    <input type="date" id="edit-date" name="date" class="form-control" required>
+                    <div class="form-error" id="edit-date-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-location" class="form-label">Location *</label>
+                    <input type="text" id="edit-location" name="location" class="form-control" required>
+                    <div class="form-error" id="edit-location-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-distance" class="form-label">Distance (km) *</label>
+                    <input type="number" id="edit-distance" name="distance" class="form-control" step="0.1" min="0.1" required>
+                    <div class="form-error" id="edit-distance-error"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-success">Update Event</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    float: right;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #7f8c8d;
+}
+
+.modal-close:hover {
+    color: #2c3e50;
+}
+</style>
+
+<script>
+// Utility function to show error messages
+function showErrors(errors, prefix) {
+    // Clear all previous errors
+    document.querySelectorAll(`[id^="${prefix}-"][id$="-error"]`).forEach(el => {
+        el.textContent = '';
+        el.previousElementSibling.classList.remove('error');
+    });
+    
+    // Show new errors
+    for (const [field, message] of Object.entries(errors)) {
+        const errorEl = document.getElementById(`${prefix}-${field}-error`);
+        const inputEl = document.getElementById(`${prefix}-${field}`);
+        if (errorEl && inputEl) {
+            errorEl.textContent = message;
+            inputEl.classList.add('error');
+        }
+    }
+}
+
+// Utility function to clear errors
+function clearErrors(prefix) {
+    document.querySelectorAll(`[id^="${prefix}-"][id$="-error"]`).forEach(el => {
+        el.textContent = '';
+    });
+    document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el => {
+        if (el.classList.contains('form-control')) {
+            el.classList.remove('error');
+        }
+    });
+}
+
+// Utility function to show flash message
+function showFlashMessage(message, category) {
+    const flashContainer = document.querySelector('.flash-messages') || createFlashContainer();
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${category}`;
+    alertDiv.textContent = message;
+    flashContainer.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function createFlashContainer() {
+    const container = document.createElement('div');
+    container.className = 'flash-messages';
+    document.querySelector('main').insertBefore(container, document.querySelector('main').firstChild);
+    return container;
+}
+
+// Create Event Form Handler
+document.getElementById('create-event-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors('create');
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('{{ url_for("web.create_event_web") }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Add new event to table
+            addEventToTable(data.event);
+            
+            // Clear form
+            e.target.reset();
+            
+            // Show success message
+            showFlashMessage('Event created successfully!', 'success');
+        } else {
+            // Show validation errors
+            if (data.errors) {
+                showErrors(data.errors, 'create');
+            } else {
+                showFlashMessage(data.error || 'An error occurred', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showFlashMessage('An error occurred while creating the event', 'error');
+    }
+});
+
+// Function to add event to table
+function addEventToTable(event) {
+    const tbody = document.getElementById('events-tbody');
+    
+    // Remove empty state if it exists
+    const emptyState = document.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.parentElement.innerHTML = `
+            <div class="table-responsive">
+                <table class="table" id="events-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Distance (km)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-tbody"></tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    const newRow = document.createElement('tr');
+    newRow.id = `event-row-${event.id}`;
+    newRow.dataset.eventId = event.id;
+    newRow.innerHTML = `
+        <td class="event-name">${event.name}</td>
+        <td class="event-date">${event.date}</td>
+        <td class="event-location">${event.location}</td>
+        <td class="event-distance">${event.distance}</td>
+        <td>
+            <div class="action-buttons">
+                <button class="btn btn-secondary btn-small edit-btn" data-event-id="${event.id}">Edit</button>
+                <button class="btn btn-danger btn-small delete-btn" data-event-id="${event.id}">Delete</button>
+            </div>
+        </td>
+    `;
+    
+    // Insert at the beginning of tbody
+    const newTbody = document.getElementById('events-tbody');
+    newTbody.insertBefore(newRow, newTbody.firstChild);
+}
+
+// Edit Event Handler
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('edit-btn')) {
+        const eventId = e.target.dataset.eventId;
+        const row = document.getElementById(`event-row-${eventId}`);
+        
+        // Populate edit form
+        document.getElementById('edit-event-id').value = eventId;
+        document.getElementById('edit-name').value = row.querySelector('.event-name').textContent;
+        document.getElementById('edit-date').value = row.querySelector('.event-date').textContent;
+        document.getElementById('edit-location').value = row.querySelector('.event-location').textContent;
+        document.getElementById('edit-distance').value = row.querySelector('.event-distance').textContent;
+        
+        // Show modal
+        document.getElementById('edit-modal').classList.remove('hidden');
+        clearErrors('edit');
+    }
+});
+
+// Close modal handlers
+document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('edit-modal').classList.add('hidden');
+});
+
+document.getElementById('cancel-edit').addEventListener('click', () => {
+    document.getElementById('edit-modal').classList.add('hidden');
+});
+
+// Close modal when clicking outside
+document.getElementById('edit-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'edit-modal') {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
+});
+
+// Update Event Form Handler
+document.getElementById('edit-event-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors('edit');
+    
+    const eventId = document.getElementById('edit-event-id').value;
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch(`/events/${eventId}/update`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update table row
+            const row = document.getElementById(`event-row-${eventId}`);
+            row.querySelector('.event-name').textContent = data.event.name;
+            row.querySelector('.event-date').textContent = data.event.date;
+            row.querySelector('.event-location').textContent = data.event.location;
+            row.querySelector('.event-distance').textContent = data.event.distance;
+            
+            // Close modal
+            document.getElementById('edit-modal').classList.add('hidden');
+            
+            // Show success message
+            showFlashMessage('Event updated successfully!', 'success');
+        } else {
+            // Show validation errors
+            if (data.errors) {
+                showErrors(data.errors, 'edit');
+            } else {
+                showFlashMessage(data.error || 'An error occurred', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showFlashMessage('An error occurred while updating the event', 'error');
+    }
+});
+
+// Delete Event Handler
+document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+        const eventId = e.target.dataset.eventId;
+        const row = document.getElementById(`event-row-${eventId}`);
+        const eventName = row.querySelector('.event-name').textContent;
+        
+        if (!confirm(`Are you sure you want to delete "${eventName}"?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/events/${eventId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Remove row from table
+                row.remove();
+                
+                // Check if table is now empty
+                const tbody = document.getElementById('events-tbody');
+                if (tbody && tbody.children.length === 0) {
+                    const tableContainer = tbody.closest('.table-responsive');
+                    if (tableContainer) {
+                        tableContainer.outerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📅</div>
+                                <div class="empty-state-text">No events yet. Create your first event above!</div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Show success message
+                showFlashMessage('Event deleted successfully!', 'success');
+            } else {
+                showFlashMessage(data.error || 'An error occurred', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showFlashMessage('An error occurred while deleting the event', 'error');
+        }
+    }
+});
+</script>
+{% endblock %}
