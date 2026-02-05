@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "jira": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-jira",
+        "--jira-base-url",
+        "https://arivolispark.atlassian.net",
+        "--jira-token",
+        "YOUR_JIRA_API_TOKEN_HERE"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
